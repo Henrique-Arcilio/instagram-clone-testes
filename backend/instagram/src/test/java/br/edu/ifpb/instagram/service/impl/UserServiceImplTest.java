@@ -8,6 +8,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,6 +21,9 @@ public class UserServiceImplTest {
 
     @Mock
     UserRepository userRepository; // Repositório simulado
+
+    @Mock
+    PasswordEncoder passwordEncoder;
 
     @InjectMocks
     UserServiceImpl userService; // Classe sob teste
@@ -59,9 +65,123 @@ public class UserServiceImplTest {
             userService.findById(userId);
         });
 
-        assertEquals("User not found", exception.getMessage());
+        assertEquals("User not found with id: " + userId, exception.getMessage());
 
         // Verificar a interação com o mock
         verify(userRepository, times(1)).findById(userId);
+    }
+
+    @Test
+    void testUpdateUser_UpdateSuccessfully(){
+        UserDto userDto =
+                new UserDto(1L,
+                        "Updated User da Silva",
+                        "UpdatedUser",
+                        "updateduser@gmail.com",
+                        "updatedpassword",
+                        null);
+
+        UserEntity oldUserEntity = new UserEntity();
+        oldUserEntity.setId(userDto.id());
+        oldUserEntity.setUsername("OldUser");
+        oldUserEntity.setFullName("Old User da Silva");
+        oldUserEntity.setEmail("olduser@gmail.com");
+
+
+        when(userRepository.findById(userDto.id())).thenReturn(Optional.of(oldUserEntity));
+        when(userRepository.save(any(UserEntity.class)))
+                .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+        UserDto userDtoResult = userService.updateUser(userDto);
+
+        assertEquals(userDto.id(), userDtoResult.id());
+        assertEquals(userDto.username(), userDtoResult.username());
+        assertEquals(userDto.fullName(), userDtoResult.fullName());
+        assertEquals(userDto.email(), userDtoResult.email());
+        assertNull(userDtoResult.password());
+        assertNull(userDtoResult.encryptedPassword());
+    }
+    @Test
+    void testUpdateUser_ThrowsExceptionWhenUserNotFound(){
+        UserDto userDto = new UserDto(
+                999L,
+                "Updated User da Silva",
+                "UpdatedUser",
+                "updateduser@gmail.com",
+                "updatedpassword",
+                null);
+
+        when(userRepository.findById(userDto.id())).thenReturn(Optional.empty());
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.updateUser(userDto));
+        assertEquals("User not found with id: " + userDto.id(), exception.getMessage());
+        verify(userRepository, never()).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdateUser_ThrowsExceptionWhenUserDtoIsNull(){
+        UserDto userDto = new UserDto(
+                null,
+                "Updated User da Silva",
+                "UpdatedUser",
+                "updateduser@gmail.com",
+                "updatedpassword",
+                null);
+
+        Exception exception1 = assertThrows(IllegalArgumentException.class, () -> userService.updateUser(null));
+        Exception exception2 = assertThrows(IllegalArgumentException.class, () -> userService.updateUser(userDto));
+
+        assertEquals("UserDto or UserDto.id must not be null", exception1.getMessage());
+        assertEquals("UserDto or UserDto.id must not be null", exception2.getMessage());
+    }
+
+    @Test
+    void testDeleteUser_DeleteUserSuccessfully(){
+        Long userId = 1L;
+        UserEntity returnedUser = new UserEntity();
+        returnedUser.setId(userId);
+        returnedUser.setFullName("User da Silva");
+        returnedUser.setEmail("user@gmail.com");
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        userService.deleteUser(userId);
+        verify(userRepository, times(1)).existsById(userId);
+        verify(userRepository, times(1)).deleteById(userId);
+    }
+
+    @Test
+    void testDeleteUser_ThrowsExceptionWhenUserNotFound(){
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(false);
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.deleteUser(userId));
+
+        assertEquals("User not found with id: " + userId, exception.getMessage());
+        verify(userRepository, never()).deleteById(userId);
+    }
+
+
+    @Test
+    void testFindAll_RetrievesAllUsersSuccessfully(){
+        UserEntity user1 = new UserEntity();
+        user1.setId(1L);
+        user1.setFullName("User One");
+        user1.setUsername("userone");
+        user1.setEmail("userone@gmail.com");
+
+        UserEntity user2 = new UserEntity();
+        user2.setId(2L);
+        user2.setFullName("User Two");
+        user2.setUsername("usertwo");
+        user2.setEmail("usertwo@gmail.com");
+
+        when(userRepository.findAll())
+                .thenReturn(List.of(user1, user2));
+
+        List<UserDto> resultList = userService.findAll();
+
+        assertEquals(2, resultList.size());
+        assertEquals("User One", resultList.get(0).fullName());
+        assertEquals("User Two", resultList.get(1).fullName());
+
+        verify(userRepository, times(1)).findAll();
     }
 }
