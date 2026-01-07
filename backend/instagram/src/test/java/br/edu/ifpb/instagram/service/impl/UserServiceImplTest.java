@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -151,4 +152,31 @@ public class UserServiceImplTest {
         verify(userRepository, never()).deleteById(userId);
     }
 
+
+    @Test
+    void testFindall_RetrievesAllUsersSuccessfully(){
+        UserEntity user1 = new UserEntity();
+        user1.setId(1L);
+        user1.setFullName("User One");
+        user1.setUsername("userone");
+        user1.setEmail("userone@gmail.com");
+
+        UserEntity user2 = new UserEntity();
+        user2.setId(2L);
+        user2.setFullName("User Two");
+        user2.setUsername("usertwo");
+        user2.setEmail("usertwo@gmail.com");
+
+        when(userRepository.findAll())
+                .thenReturn(List.of(user1, user2));
+
+        List<UserDto> resultList = userService.findAll();
+
+        assertEquals(2, resultList.size());
+        assertEquals("User One", resultList.get(0).fullName());
+        assertEquals("User Two", resultList.get(1).fullName());
+
+        verify(userRepository, times(1)).findAll();
+
+    }
 }
