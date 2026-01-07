@@ -1,30 +1,25 @@
 package br.edu.ifpb.instagram.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
 import br.edu.ifpb.instagram.model.dto.UserDto;
 import br.edu.ifpb.instagram.model.entity.UserEntity;
 import br.edu.ifpb.instagram.repository.UserRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import java.util.Optional;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
 
-    @MockitoBean
+    @Mock
     UserRepository userRepository; // Repositório simulado
 
-    @Autowired
+    @InjectMocks
     UserServiceImpl userService; // Classe sob teste
 
     @Test
