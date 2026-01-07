@@ -27,8 +27,6 @@ public class UserServiceImplTest {
     @InjectMocks
     UserServiceImpl userService; // Classe sob teste
 
-
-
     @Test
     void testFindById_ReturnsUserDto() {
         // Configurar o comportamento do mock
@@ -129,6 +127,28 @@ public class UserServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> userService.updateUser(null));
         assertThrows(IllegalArgumentException.class, () -> userService.updateUser(userDto));
 
+    }
+
+    @Test
+    void testDeleteUser_DeleteUserSuccessfully(){
+        Long userId = 1L;
+        UserEntity returnedUser = new UserEntity();
+        returnedUser.setId(userId);
+        returnedUser.setFullName("User da Silva");
+        returnedUser.setEmail("user@gmail.com");
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        userService.deleteUser(userId);
+        verify(userRepository, times(1)).existsById(userId);
+        verify(userRepository, times(1)).deleteById(userId);
+    }
+
+    @Test
+    void testDeleteUser_ThrowsExceptionWhenUserNotFound(){
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(false);
+        assertThrows(RuntimeException.class, () -> userService.deleteUser(userId));
+        verify(userRepository, never()).deleteById(userId);
     }
 
 }
