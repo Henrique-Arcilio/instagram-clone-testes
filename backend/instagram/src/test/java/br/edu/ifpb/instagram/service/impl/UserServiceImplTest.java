@@ -59,7 +59,7 @@ public class UserServiceImplTest {
             userService.findById(userId);
         });
 
-        assertEquals("User not found", exception.getMessage());
+        assertEquals("User not found with id: " + userId, exception.getMessage());
 
         // Verificar a interação com o mock
         verify(userRepository, times(1)).findById(userId);
