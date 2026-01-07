@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,8 +21,13 @@ public class UserServiceImplTest {
     @Mock
     UserRepository userRepository; // Repositório simulado
 
+    @Mock
+    PasswordEncoder passwordEncoder;
+
     @InjectMocks
     UserServiceImpl userService; // Classe sob teste
+
+
 
     @Test
     void testFindById_ReturnsUserDto() {
@@ -64,4 +71,64 @@ public class UserServiceImplTest {
         // Verificar a interação com o mock
         verify(userRepository, times(1)).findById(userId);
     }
+
+    @Test
+    void testUpdateUser_UpdateSuccessfully(){
+        UserDto userDto =
+                new UserDto(1L,
+                        "Updated User da Silva",
+                        "UpdatedUser",
+                        "updateduser@gmail.com",
+                        "updatedpassword",
+                        null);
+
+        UserEntity oldUserEntity = new UserEntity();
+        oldUserEntity.setId(userDto.id());
+        oldUserEntity.setUsername("OldUser");
+        oldUserEntity.setFullName("Old User da Silva");
+        oldUserEntity.setEmail("olduser@gmail.com");
+
+
+        when(userRepository.findById(userDto.id())).thenReturn(Optional.of(oldUserEntity));
+        when(userRepository.save(any(UserEntity.class)))
+                .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+        UserDto userDtoResult = userService.updateUser(userDto);
+
+        assertEquals(userDto.id(), userDtoResult.id());
+        assertEquals(userDto.username(), userDtoResult.username());
+        assertEquals(userDto.fullName(), userDtoResult.fullName());
+        assertEquals(userDto.email(), userDtoResult.email());
+        assertNull(userDtoResult.password());
+        assertNull(userDtoResult.encryptedPassword());
+    }
+    @Test
+    void testUpdateUser_ThrowsExceptionWhenUserIdNotFound(){
+        UserDto userDto = new UserDto(
+                999L,
+                "Updated User da Silva",
+                "UpdatedUser",
+                "updateduser@gmail.com",
+                "updatedpassword",
+                null);
+
+        when(userRepository.findById(userDto.id())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> userService.updateUser(userDto));
+        verify(userRepository, never()).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdateUser_ThrowsExceptionWhenUserDtoIsNull(){
+        UserDto userDto = new UserDto(
+                null,
+                "Updated User da Silva",
+                "UpdatedUser",
+                "updateduser@gmail.com",
+                "updatedpassword",
+                null);
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(null));
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(userDto));
+
+    }
+
 }
