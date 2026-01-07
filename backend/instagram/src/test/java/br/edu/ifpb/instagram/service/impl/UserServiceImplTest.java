@@ -102,7 +102,7 @@ public class UserServiceImplTest {
         assertNull(userDtoResult.encryptedPassword());
     }
     @Test
-    void testUpdateUser_ThrowsExceptionWhenUserIdNotFound(){
+    void testUpdateUser_ThrowsExceptionWhenUserNotFound(){
         UserDto userDto = new UserDto(
                 999L,
                 "Updated User da Silva",
@@ -112,7 +112,8 @@ public class UserServiceImplTest {
                 null);
 
         when(userRepository.findById(userDto.id())).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> userService.updateUser(userDto));
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.updateUser(userDto));
+        assertEquals("User not found with id: " + userDto.id(), exception.getMessage());
         verify(userRepository, never()).save(any(UserEntity.class));
     }
 
@@ -125,9 +126,12 @@ public class UserServiceImplTest {
                 "updateduser@gmail.com",
                 "updatedpassword",
                 null);
-        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(null));
-        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(userDto));
 
+        Exception exception1 = assertThrows(IllegalArgumentException.class, () -> userService.updateUser(null));
+        Exception exception2 = assertThrows(IllegalArgumentException.class, () -> userService.updateUser(userDto));
+
+        assertEquals("UserDto or UserDto.id must not be null", exception1.getMessage());
+        assertEquals("UserDto or UserDto.id must not be null", exception2.getMessage());
     }
 
     @Test
@@ -148,13 +152,15 @@ public class UserServiceImplTest {
     void testDeleteUser_ThrowsExceptionWhenUserNotFound(){
         Long userId = 1L;
         when(userRepository.existsById(userId)).thenReturn(false);
-        assertThrows(RuntimeException.class, () -> userService.deleteUser(userId));
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.deleteUser(userId));
+
+        assertEquals("User not found with id: " + userId, exception.getMessage());
         verify(userRepository, never()).deleteById(userId);
     }
 
 
     @Test
-    void testFindall_RetrievesAllUsersSuccessfully(){
+    void testFindAll_RetrievesAllUsersSuccessfully(){
         UserEntity user1 = new UserEntity();
         user1.setId(1L);
         user1.setFullName("User One");
@@ -177,6 +183,5 @@ public class UserServiceImplTest {
         assertEquals("User Two", resultList.get(1).fullName());
 
         verify(userRepository, times(1)).findAll();
-
     }
 }
