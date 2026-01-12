@@ -15,8 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -27,9 +26,6 @@ class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper mapper;
@@ -102,5 +98,24 @@ class UserControllerTest {
                 .andReturn());
 
         assertTrue(nullIdException.getMessage().contains("UserDto or UserDto.id must not be null"));
+    }
+
+    @Test
+    void deleteUser_ShouldDeleteUserFromDataBase() throws Exception {
+        Long userId = 1L;
+        mockMvc.perform(delete("/users/{id}", userId))
+                .andExpect(status().isOk())
+                .andExpect(content().string("user was deleted!"));
+    }
+
+    @Test
+    void deleteUser_ThrowsExceptionWhenUserNotFound() throws Exception {
+        Long userId = 999L;
+        ServletException ex = assertThrows(ServletException.class,
+                () -> mockMvc.perform(delete("/users/{id}", userId))
+                .andReturn());
+        assertTrue(ex.getMessage().contains("User not found with id: " + userId));
+
+
     }
 }
