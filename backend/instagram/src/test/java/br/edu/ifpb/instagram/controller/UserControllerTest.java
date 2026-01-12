@@ -1,7 +1,6 @@
 package br.edu.ifpb.instagram.controller;
 
 import br.edu.ifpb.instagram.model.request.UserDetailsRequest;
-import br.edu.ifpb.instagram.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.transaction.Transactional;
@@ -31,7 +30,7 @@ class UserControllerTest {
     private ObjectMapper mapper;
 
     @Test
-    void getUserById_ShouldReturnUserDetailsResponse() throws Exception {
+    void getUser_ShouldReturnUserDetailsResponse() throws Exception {
 
         mockMvc.perform(get("/users/{id}", 1L))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -43,7 +42,7 @@ class UserControllerTest {
     }
 
     @Test
-    void getUserById_ThrowsExceptionWhenUserNotFound() {
+    void getUser_ThrowsExceptionWhenUserNotFound() {
         Long userID = 999L;
         ServletException ex = assertThrows(ServletException.class, () -> {
             mockMvc.perform(get("/users/{id}", userID))
@@ -115,7 +114,5 @@ class UserControllerTest {
                 () -> mockMvc.perform(delete("/users/{id}", userId))
                 .andReturn());
         assertTrue(ex.getMessage().contains("User not found with id: " + userId));
-
-
     }
 }
