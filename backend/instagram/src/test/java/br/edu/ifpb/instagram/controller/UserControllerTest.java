@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -29,7 +30,7 @@ class UserControllerTest {
     void getUserById_ShouldReturnUserDetailsResponse() throws Exception {
 
         mockMvc.perform(get("/users/{id}", 1L))
-                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.fullName").value("Test User1"))
                 .andExpect(jsonPath("$.username").value("testuser1"))
@@ -49,7 +50,8 @@ class UserControllerTest {
 
     @Test
     void getUsers_ShouldReturnAListOfUserDetailsResponse() throws Exception {
-        mockMvc.perform(get("/users")).andExpect(status().isOk())
+        mockMvc.perform(get("/users"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))                .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.size()").value(3))
                 .andExpect(jsonPath("$[*].username", containsInAnyOrder("testuser1", "testuser2", "testuser3")));
