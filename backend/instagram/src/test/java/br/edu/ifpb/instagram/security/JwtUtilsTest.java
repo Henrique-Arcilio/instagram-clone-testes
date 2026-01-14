@@ -55,4 +55,27 @@ public class JwtUtilsTest {
         assertEquals(expectedUser, resultUser);
     }
 
+    @Test
+    void testValidateToken_ModifiedTokenReturnsFalse(){
+        when(auth.getName()).thenReturn("user");
+        String tokenOriginal = jwtUtils.generateToken(auth);
+        String tokenRuim = tokenOriginal + "ruim";
+
+        boolean result = jwtUtils.validateToken(tokenRuim);
+
+        assertFalse(result);
+    }
+
+    @Test // Objetivo: verificar se o token expira
+    void testValidateToken_TokenExpiradoReturnsFalse(){
+        String tokenAntigo = io.jsonwebtoken.Jwts.builder()
+                .setSubject("usuario_velho")
+                .setIssuedAt(new java.util.Date(System.currentTimeMillis() - 1000000000)) // data no passado
+                .setExpiration(new java.util.Date(System.currentTimeMillis() - 500000)) // já expirou
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(java.util.Base64.getEncoder().encode("LoremIpsumDolorSitAmetConsecteturAdipiscingElitSedDoEiusmodTemporIncididuntUtLaboreEtDoloreMagnaAliqua".getBytes())), io.jsonwebtoken.SignatureAlgorithm.HS512)
+                .compact();
+
+        boolean result = jwtUtils.validateToken(tokenAntigo);
+        assertFalse(result);
+    }
 }
