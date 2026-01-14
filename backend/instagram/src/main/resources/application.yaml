@@ -4,7 +4,7 @@ spring:
   datasource:
     username: instagram_user
     password: instagram_password
-    url: jdbc:mariadb://instagram-clone-db:3306/instagram_db
+    url: jdbc:mariadb://db:3306/instagram_db
     driver-class-name: org.mariadb.jdbc.Driver
   jpa.hibernate.ddl-auto: update
 server:
