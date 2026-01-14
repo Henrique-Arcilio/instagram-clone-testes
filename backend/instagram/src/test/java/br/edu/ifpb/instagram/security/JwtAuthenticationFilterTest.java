@@ -66,4 +66,19 @@ public class JwtAuthenticationFilterTest {
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         verify(chain).doFilter(req, res);
     }
+
+    @Test
+    void testDoFilter_TokenRuim_NaoDeveAutenticar() throws Exception {
+        String token = "Bearer token.errado";
+        String jwt = "token.errado";
+
+        when(req.getHeader("Authorization")).thenReturn(token);
+        when(jwtUtils.getUsernameFromToken(jwt)).thenReturn("user");
+        when(jwtUtils.validateToken(jwt)).thenReturn(false);
+
+        filter.doFilterInternal(req, res, chain);
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(chain).doFilter(req, res);
+    }
 }
