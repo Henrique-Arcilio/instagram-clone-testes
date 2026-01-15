@@ -1,5 +1,6 @@
 package br.edu.ifpb.instagram.service.impl;
 
+import br.edu.ifpb.instagram.exception.FieldAlreadyExistsException;
 import br.edu.ifpb.instagram.model.dto.UserDto;
 import br.edu.ifpb.instagram.model.entity.UserEntity;
 import br.edu.ifpb.instagram.repository.UserRepository;
@@ -183,5 +184,42 @@ public class UserServiceImplTest {
         assertEquals("User Two", resultList.get(1).fullName());
 
         verify(userRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testCreateUser_Success() {
+        UserDto dto = new UserDto(null, "Yadmiin batista sarinho", "yasmin123", "yas@min.com", "yasmin123", null);
+
+        when(userRepository.existsByEmail(dto.email())).thenReturn(false);
+        when(userRepository.existsByUsername(dto.username())).thenReturn(false);
+        when(passwordEncoder.encode(dto.password())).thenReturn("senha_criptografada");
+
+        UserEntity mockUserEntity = new UserEntity();
+        mockUserEntity.setId(10L);
+        mockUserEntity.setFullName(dto.fullName());
+        mockUserEntity.setUsername(dto.username());
+        mockUserEntity.setEmail(dto.email());
+
+        when(userRepository.save(any(UserEntity.class))).thenReturn(mockUserEntity);
+
+        UserDto result = userService.createUser(dto);
+
+        assertNotNull(result.id());
+        assertEquals("yasmin123", result.username());
+        verify(passwordEncoder).encode("yasmin123");
+        verify(userRepository).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testCreateUser_ThrowsExceptionWhenEmailAlreadyExists() {
+
+        UserDto dto = new UserDto(null, "Yasmin Sarinho", "yasmin123", "duplicado@test.com", "senha123", null);
+
+        when(userRepository.existsByEmail(dto.email())).thenReturn(true);
+
+        FieldAlreadyExistsException exception = assertThrows(FieldAlreadyExistsException.class, () -> {userService.createUser(dto);});
+
+        assertEquals("E-email already in use.", exception.getMessage());
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 }
