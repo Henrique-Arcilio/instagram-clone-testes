@@ -136,6 +136,21 @@ public class UserServiceImplTest {
     }
 
     @Test
+    void testUpdateUser_ThrowsExceptionWhenUserDtoIDisNull(){
+        UserDto userDto = new UserDto(
+                null,
+                "Updated User da Silva",
+                "UpdatedUser",
+                "updateduser@gmail.com",
+                "updatedpassword",
+                null);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.updateUser(userDto));
+
+        assertEquals("UserDto or UserDto.id must not be null", exception.getMessage());
+    }
+
+    @Test
     void testDeleteUser_DeleteUserSuccessfully(){
         Long userId = 1L;
         UserEntity returnedUser = new UserEntity();
