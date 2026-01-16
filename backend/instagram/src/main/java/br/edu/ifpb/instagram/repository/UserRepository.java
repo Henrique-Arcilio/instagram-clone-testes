@@ -18,7 +18,7 @@ public interface UserRepository extends CrudRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
     List<UserEntity> findAll();
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Transactional
     @Query("UPDATE users u SET " +
            "u.fullName = COALESCE(:fullName, u.fullName), " +
